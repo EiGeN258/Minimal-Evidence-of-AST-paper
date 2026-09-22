@@ -1,76 +1,142 @@
-# LearnedBias 论文复现项目
+# LearnedBias Reimplementation Settings
 
-对应论文：Abdullah Altawaitan 等，`Learned IMU Bias Prediction for Invariant Visual Inertial Odometry`，IEEE RA-L 2025。
+This directory documents the configuration and reproduction conditions used for the LearnedBias baseline in the comparative experiments of the AST manuscript.
 
-本项目复现论文中可由正文确定的核心链路：200 Hz 六轴 IMU 的 1 秒滑窗、单网络联合估计陀螺仪与加速度计偏置、窗口内恒定六轴偏置、可微分 IMU 积分、`SE₂(3)` 姿态/速度/位置误差训练，以及在线逐帧补偿接口。输出可以直接接统一的惯导或 GNSS/IMU ESKF。
+**Important:** this directory is not a standalone release of a complete LearnedBias training/inference implementation. The complete reimplementation source code is not distributed here. Instead, the repository provides the paper-reported settings, the concrete settings used in our engineering reimplementation, the dataset split, and the implementation choices required to understand how the baseline was configured.
 
-## 论文对应关系
+## Reference Method
 
-| 项目 | 论文设定 | 本项目 |
-|---|---:|---:|
-| 输入 | 200 Hz IMU，1 秒 | `[B,200,6]` |
-| 输出 | 六轴偏置 | `[B,200,6]`，窗口内恒定 |
-| 最终网络 | ResNet，约 300K 参数 | 一维残差网络，默认约 30 万参数 |
-| 状态损失 | `SE₂(3)` Huber | 姿态、速度、位置可微分积分损失 |
-| 分量权重 | 姿态 `10³`，位置 `10²`，速度 `10¹` | 完整实现 |
-| 优化器 | Adam，学习率 `1e-3` | 完整实现 |
-| 推理 | 200 Hz 重叠滑窗 | `StreamingBiasCorrector` |
+**Learned IMU Bias Prediction for Invariant Visual Inertial Odometry**  
+Abdullah Altawaitan et al., IEEE Robotics and Automation Letters, 2025.
 
-## 复现边界
+In our comparative protocol, LearnedBias is used only as a source-end IMU bias-compensation method. Its corrected six-axis IMU output is evaluated with the same downstream GNSS/IMU fusion protocol as the other source-end methods.
 
-论文没有公开最终 ResNet 的逐层通道、卷积核和残差块数量，只说明沿用所引 ResNet 设计且参数量约 300K。因此本项目使用满足论文输入、输出、恒定窗口偏置和参数规模约束的一维 ResNet。该部分属于工程复现，不声称与作者私有实现逐层相同。
+## What Is Provided Here
 
-论文的完整视觉前端、特征追踪和 MSCKF 工程细节不足以仅由正文无歧义复原。本项目实现论文的 LearnedBias 核心网络、训练损失和实时 IMU 补偿接口，不伪称复现作者完整视觉系统。用于你的统一 ESKF 对比时，这一边界正好保证所有方法只改变源端 IMU。
+The main configuration file is:
 
-
-## 数据获取与许可说明
-
-本仓库不分发复现实验所需的原始数据集。原始 IMU、轨迹真值及相关传感器数据应由使用者自行从相应公开数据集的官方来源下载，并遵守原数据集的许可协议、使用条款与引用要求。
-
-仓库中的 `configs/` 目录及各序列目录仅用于提供实验配置和预期的数据组织结构；其中的空目录不代表数据缺失。下载原始数据后，请按照本 README 或配置文件中的路径要求放置数据，再执行预处理、训练和推理流程。
-
-本仓库若提供模型生成的补偿后 IMU、预测偏置或评测结果，仅用于复现本文中的对比实验与统一下游评测，不构成对原始数据集的重新分发，也不改变原始数据集各自的版权与许可要求。
-
-## 安装与自检
-
-```bash
-python -m venv .venv
-.venv/Scripts/activate
-pip install -e ".[test]"
-learned-bias-smoke
-pytest
+```text
+configs/uzh_fpv.yaml
 ```
 
-Linux 下将激活命令换为 `source .venv/bin/activate`。
+It records:
+1. **Paper-reported settings** directly supported by the published method description.
+2. **Reproduction settings** actually used in our engineering reimplementation.
+3. **Implementation choices** for architectural details not fully disclosed in the original paper.
 
+The complete training and inference source code used in our internal reimplementation is not included in this public repository.
 
-输出 NPZ 包含：
+## Dataset Split
 
-- `time`: 相对秒
-- `gyro`: rad/s，三轴
-- `accel`: m/s²，三轴比力
-- `position`: m
-- `velocity`: m/s
-- `quaternion`: `w,x,y,z`
-
-建立 `data/train.txt` 与 `data/val.txt`，每行写一个相对该清单文件的 NPZ 路径。
-
-## 训练
-
-```bash
-learned-bias-train --config configs/euroc.yaml
+### Training
+```text
+UZH_Indoorforward_3_davis
+UZH_Indoorforward_7_davis
+UZH_Outdoorforward_1_davis
+UZH_Indoor45_2_davis
 ```
 
-最佳权重输出到 `runs/learned_bias/best.pt`。
-
-## 导出补偿 IMU
-
-```bash
-learned-bias-infer --checkpoint runs/learned_bias/best.pt --input data/V1_02_medium.npz --output outputs/V1_02_medium.csv
+### Validation
+```text
+UZH_Indoorforward_5_davis
+UZH_Outdoorforward_5_davis
+UZH_Indoor45_4_davis
 ```
 
-CSV 前七列为 `time + corrected gyro_xyz + corrected accel_xyz`，后六列为预测偏置。接入现有评测脚本时取前七列即可。
+### Test
+```text
+UZH_Indoorforward_9_davis
+UZH_Outdoorforward_3_davis
+UZH_Indoor45_9_davis
+UZH_Outdoor45_1_davis
+```
 
-## 与当前 AirIMU 对比协议衔接
+## Paper-Reported Settings
 
-该项目只输出源端补偿后的六轴 IMU，不改你的伪 GNSS、失锁 seed、15-state ESKF、恢复策略和评价指标。由此可将 LearnedBias 与 Raw、AirIMU、DIDO、IMUDB 和 de-gyro 放进同一后端协议比较。
+| Item | Setting |
+|---|---|
+| IMU sampling rate | 200 Hz |
+| Input window | 1 s |
+| Input samples | 200 |
+| Input channels | 6 |
+| Predicted quantity | Six-axis IMU bias |
+| Bias assumption | Constant within each window |
+| Backbone | ResNet |
+| Approximate parameter count | 300 K |
+| Training objective | Differentiable IMU integration |
+| State representation | SE2(3) |
+| Robust loss | Huber |
+| Orientation weight | 1000 |
+| Position weight | 100 |
+| Velocity weight | 10 |
+| Optimizer | Adam |
+| Learning rate | 0.001 |
+| Inference | Sliding-window bias correction |
+
+## Concrete Reproduction Settings
+
+The concrete settings used in our engineering reproduction are preserved in `configs/uzh_fpv.yaml`, including:
+
+```text
+seed: 42
+device: cuda
+window: 200
+stride: 200
+batch_size: 32
+epochs: 200
+learning_rate: 0.001
+weight_decay: 0.0
+num_workers: 4
+gravity: [0.0, 0.0, -9.81]
+channels: 96
+kernel_size: 5
+dilations: [1, 2, 4]
+dropout: 0.0
+huber_delta: 1.0
+```
+
+## Implementation Choices Not Fully Specified by the Original Paper
+
+The original paper does not disclose the final ResNet layer-by-layer channel widths, exact kernel sizes, or complete residual-block count.
+
+Our engineering reproduction therefore uses a one-dimensional residual network configured with:
+```text
+channels: 96
+kernel_size: 5
+dilations: [1, 2, 4]
+dropout: 0.0
+```
+
+These entries are explicitly separated under `implementation_choices` in the configuration file and must not be interpreted as unpublished settings supplied by the original LearnedBias authors.
+
+The original method also contains a broader visual-inertial estimation system. Our comparison uses only the learned IMU-bias compensation component so that all source-end methods are evaluated using the same downstream navigation backend.
+
+## Data Availability and Repository Paths
+
+The evaluation files used by the downstream reproduction package are stored under the repository-level `data/` directory.
+
+The configuration uses repository-relative paths:
+```text
+../data/raw
+../data/gt
+```
+
+The files under `data/raw` and `data/gt` are processed evaluation files derived from the public UZH-FPV dataset and converted into the unified format used by our evaluation pipeline. Users should cite and comply with the license and terms of the original UZH-FPV dataset.
+
+The complete original third-party dataset distribution is not reproduced here.
+
+## Relation to the Released Table 3 Reproduction
+
+The public repository's main executable reproducibility target is the downstream navigation evaluation.
+
+The script:
+```text
+../reproduce_table3.py
+```
+reproduces the Baseline and Ours columns of Table 3 from the released frozen IMU outputs, outage seeds, and common 15-state ESKF evaluation protocol.
+
+This LearnedBias directory is provided to disclose the configuration and reproduction conditions of the LearnedBias comparison. It is not required for executing the released Table 3 Baseline/Ours reproduction script.
+
+## Scope
+
+This directory is a **configuration and reproduction-conditions disclosure** for the LearnedBias baseline. It is not an official LearnedBias repository and does not claim bitwise equivalence to an unpublished original implementation.

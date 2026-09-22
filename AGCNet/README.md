@@ -1,76 +1,139 @@
-# AGCNet 论文复现项目
+# AGCNet Reimplementation Settings
 
-对应论文：`AGCNet: Improving Inertial Odometry via IMU Accelerometer and Gyroscope Online Compensation`，IEEE/RSJ IROS 2025。
+This directory documents the configuration and reproduction conditions used for the AGCNet baseline in the comparative experiments of the AST manuscript.
 
-本项目复现论文的在线六轴 IMU 补偿主链路：512 帧输入、Patch Partition、卷积嵌入、三层扩张卷积 U-Net、跳跃连接、未来 10 帧补偿、多任务速度/姿态积分损失，以及按 10 帧步长运行的在线补偿器。
+**Important:** this directory is not a standalone release of a complete AGCNet training/inference implementation. The complete reimplementation source code is not distributed here. Instead, the repository provides the paper-reported settings, the concrete settings used in our engineering reimplementation, the dataset split, and the implementation choices required to understand how the baseline was configured.
 
-## 论文对应关系
+## Reference Method
 
-| 项目 | 论文设定 | 本项目 |
-|---|---:|---:|
-| 输入窗口 | `N=512` | `[B,512,6]` |
-| 输出 | 对齐偏移 `T=10` 的六轴加性补偿 | `[B,512,6]` |
-| 基础通道 | `C=32` | 32 |
-| 编码器扩张率 | `1,4,16` | `1,4,16` |
-| 编解码深度 | 三层 U-Net | 三层 U-Net |
-| 每层卷积 | Dilated Block ×2 | Dilated Block ×2 |
-| 加速度任务 | 速度积分 Huber，阈值 0.05 | 完整实现 |
-| 陀螺仪任务 | SO(3) 姿态积分 Huber，阈值 0.005 | 完整实现 |
-| 尾部权重 | 最后 `T` 帧乘 `N/T` | 完整实现 |
-| 训练 | Adam，1600 epoch，lr 0.01，wd 0.1，余弦退火 | 完整实现 |
+**AGCNet: Improving Inertial Odometry via IMU Accelerometer and Gyroscope Online Compensation**  
+IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS), 2025.
 
-## 复现边界
+AGCNet is used in our study as a source-end six-axis IMU compensation baseline. Its output is evaluated using the same downstream GNSS/IMU fusion protocol as the other source-end methods.
 
-论文给出了结构图、各层通道、卷积核和扩张率，但没有说明 Patch Merging、Patch Expanding、跳跃融合和 Conv Projection 的全部算子细节。本项目按结构图的时序长度和通道变化实现：相邻帧拼接降采样、线性投影、子通道重排上采样、同尺度相加跳跃融合，以及 `64→64→6` 投影头。这些位置属于工程复现，不能宣称与作者未公开实现逐算子一致。
+## What Is Provided Here
 
-论文公式使用世界系角速度完成姿态递推。本项目保留这一正文写法，以便最大限度对齐论文，而不是擅自替换成常见的体系角速度右乘形式。
+The main configuration file is:
 
-
-## 数据获取与许可说明
-
-本仓库不分发原始数据集。复现实验所需的原始 IMU、轨迹真值及相关传感器数据应由使用者自行从相应公开数据集的官方来源下载，并遵守原数据集的许可协议、使用条款与引用要求。
-
-仓库中的 `configs/` 目录仅提供实验所需的序列配置与路径模板。下载原始数据后，请按照配置文件或 README 中说明的目录结构放置数据，再执行预处理、训练与推理流程。
-
-本仓库中若提供由原始数据进一步生成的模型输出、补偿后 IMU 或评测结果，其用途仅为复现本文中的对比与下游评测；这些文件不代表对原始数据集的再分发，也不改变原始数据集各自的版权与许可要求。
-
-## 安装与自检
-
-```bash
-python -m venv .venv
-.venv/Scripts/activate
-pip install -e ".[test]"
-agcnet-smoke
-pytest
+```text
+configs/uzh_fpv.yaml
 ```
 
-Linux 下将激活命令换为 `source .venv/bin/activate`。
+It records:
+1. **Paper-reported settings** directly supported by the published method description.
+2. **Reproduction settings** actually used in our engineering reimplementation.
+3. **Implementation choices** for details not fully specified in the original paper.
 
-## EuRoC 数据预处理
+The complete training and inference source code used in our internal reimplementation is not included in this public repository.
 
-```bash
-agcnet-prepare-euroc /path/to/MH_01_easy data/MH_01_easy.npz
+## Dataset Split
+
+### Training
+```text
+UZH_Indoorforward_3_davis
+UZH_Indoorforward_7_davis
+UZH_Outdoorforward_1_davis
+UZH_Indoor45_2_davis
 ```
 
-输出 NPZ 包含 `time`、`gyro`、`accel`、`position` 和 `quaternion`。四元数顺序为 `w,x,y,z`。
-
-
-## 训练
-
-```bash
-agcnet-train --config configs/euroc.yaml
+### Validation
+```text
+UZH_Indoorforward_5_davis
+UZH_Outdoorforward_5_davis
+UZH_Indoor45_4_davis
 ```
 
-最佳权重输出到 `runs/agcnet/best.pt`。
-
-## 导出补偿 IMU
-
-```bash
-agcnet-infer --checkpoint runs/agcnet/best.pt --input data/MH_04_difficult.npz --output outputs/MH_04_difficult.csv
+### Test
+```text
+UZH_Indoorforward_9_davis
+UZH_Outdoorforward_3_davis
+UZH_Indoor45_9_davis
+UZH_Outdoor45_1_davis
 ```
 
-CSV 前七列为 `time + corrected gyro_xyz + corrected accel_xyz`，后六列为网络加性补偿量。前 512 帧以及新预测尚未到达的时刻保持零补偿，这是因果部署所必需的热启动阶段。
+## Paper-Reported Settings
 
-## 与当前 AirIMU 对比协议衔接
+| Item | Setting |
+|---|---|
+| Input window | 512 IMU samples |
+| Prediction horizon | 10 samples |
+| Input channels | 6 |
+| Output channels | 6 |
+| Backbone | Three-level dilated-convolution U-Net |
+| Base channels | 32 |
+| Encoder dilation rates | 1, 4, 16 |
+| Dilated blocks per stage | 2 |
+| Skip connections | Enabled |
+| Accelerometer loss | Integrated-velocity Huber loss |
+| Velocity Huber threshold | 0.05 |
+| Gyroscope loss | SO(3)-integrated rotation Huber loss |
+| Rotation Huber threshold | 0.005 |
+| Tail weighting | N/T |
+| Tail weight factor | 51.2 |
+| Optimizer | Adam |
+| Epochs | 1600 |
+| Learning rate | 0.01 |
+| Weight decay | 0.1 |
+| Scheduler | Cosine annealing |
 
-该项目只输出源端补偿后的六轴 IMU。将导出 CSV 的前七列送入现有统一 15-state ESKF，保持伪 GNSS、失锁窗口、seed、恢复策略和所有指标不变，即可作为 AGCNet 源端基线。
+## Concrete Reproduction Settings
+
+The concrete settings used in our engineering reproduction are preserved in `configs/uzh_fpv.yaml`, including:
+
+```text
+seed: 42
+device: cuda
+window: 512
+horizon: 10
+stride: 10
+batch_size: 8
+epochs: 1600
+learning_rate: 0.01
+weight_decay: 0.1
+num_workers: 4
+gravity: [0.0, 0.0, -9.81]
+kernel_size: 5
+dilations: [1, 4, 16]
+```
+
+## Implementation Choices Not Fully Specified by the Original Paper
+
+The original paper does not fully specify every operator-level detail of Patch Merging, Patch Expanding, skip fusion, and the final projection layer.
+
+Our engineering reproduction used:
+- adjacent-frame concatenation followed by linear projection for patch merging;
+- subchannel rearrangement for patch expanding;
+- same-scale addition for skip fusion;
+- a `64 -> 64 -> 6` projection head.
+
+These items are explicitly separated under `implementation_choices` in the configuration file and must not be interpreted as unpublished settings supplied by the original AGCNet authors.
+
+## Data Availability and Repository Paths
+
+The evaluation files used by the downstream reproduction package are stored under the repository-level `data/` directory.
+
+The configuration uses repository-relative paths:
+```text
+../data/raw
+../data/gt
+```
+
+The files under `data/raw` and `data/gt` are processed evaluation files derived from the public UZH-FPV dataset and converted into the unified format used by our evaluation pipeline. Users should cite and comply with the license and terms of the original UZH-FPV dataset.
+
+The complete original third-party dataset distribution is not reproduced here.
+
+## Relation to the Released Table 3 Reproduction
+
+The public repository's main executable reproducibility target is the downstream navigation evaluation.
+
+The script:
+```text
+../reproduce_table3.py
+```
+reproduces the Baseline and Ours columns of Table 3 from the released frozen IMU outputs, outage seeds, and common 15-state ESKF evaluation protocol.
+
+This AGCNet directory is provided to disclose the configuration and reproduction conditions of the AGCNet comparison. It is not required for executing the released Table 3 Baseline/Ours reproduction script.
+
+## Scope
+
+This directory is a **configuration and reproduction-conditions disclosure** for the AGCNet baseline. It is not an official AGCNet repository and does not claim bitwise equivalence to an unpublished original implementation.
