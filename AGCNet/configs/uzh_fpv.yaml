@@ -1,0 +1,92 @@
+# AGCNet configuration used for the paper-comparison reproduction.
+# Values are separated into:
+#   paper_reported: explicitly supported by the paper/reproduction notes
+#   reproduction: concrete settings used in our reimplementation
+#   implementation_choices: details not fully specified by the original paper
+
+method: AGCNet
+
+repository_paths:
+  raw_root: ../data/raw
+  gt_root: ../data/gt
+  output_root: ../data/AGCNet_net_output
+
+data_split:
+  train:
+    - UZH_Indoorforward_3_davis
+    - UZH_Indoorforward_7_davis
+    - UZH_Outdoorforward_1_davis
+    - UZH_Indoor45_2_davis
+  val:
+    - UZH_Indoorforward_5_davis
+    - UZH_Outdoorforward_5_davis
+    - UZH_Indoor45_4_davis
+  test:
+    - UZH_Indoorforward_9_davis
+    - UZH_Outdoorforward_3_davis
+    - UZH_Indoor45_9_davis
+    - UZH_Outdoor45_1_davis
+
+paper_reported:
+  task: online_six_axis_imu_compensation
+  input_window_samples: 512
+  prediction_horizon_samples: 10
+  input_channels: 6
+  output_channels: 6
+  patch_partition: true
+  backbone: three_level_dilated_convolution_unet
+  base_channels: 32
+  encoder_dilations: [1, 4, 16]
+  dilated_blocks_per_stage: 2
+  skip_connections: true
+  loss:
+    acceleration_branch: integrated_velocity_huber
+    velocity_huber_delta: 0.05
+    gyroscope_branch: so3_integrated_rotation_huber
+    rotation_huber_delta: 0.005
+    tail_weighting: N_over_T
+    tail_weight_factor: 51.2
+  training:
+    optimizer: Adam
+    epochs: 1600
+    learning_rate: 0.01
+    weight_decay: 0.1
+    scheduler: cosine_annealing
+
+reproduction:
+  seed: 42
+  device: cuda
+  window: 512
+  horizon: 10
+  stride: 10
+  batch_size: 8
+  epochs: 1600
+  learning_rate: 0.01
+  weight_decay: 0.1
+  num_workers: 4
+  gravity: [0.0, 0.0, -9.81]
+  model:
+    base_channels: 32
+    kernel_size: 5
+    dilations: [1, 4, 16]
+  loss:
+    velocity_delta: 0.05
+    rotation_delta: 0.005
+
+implementation_choices:
+  note: >
+    The original paper does not fully disclose the operator-level definitions of
+    Patch Merging, Patch Expanding, skip fusion, and Conv Projection.
+    The following entries document the engineering choices used in our reimplementation
+    and should not be presented as author-provided settings from the original paper.
+  patch_merge: adjacent_frame_concatenation_plus_linear_projection
+  patch_expand: subchannel_rearrangement
+  skip_fusion: same_scale_addition
+  projection_head: [64, 64, 6]
+
+dataset_availability:
+  redistributed_here: false
+  note: >
+    Raw UZH-FPV data are not redistributed in this repository.
+    Users should obtain the original data from the official dataset source and
+    place the required sequences under repository_paths.raw_root and repository_paths.gt_root.

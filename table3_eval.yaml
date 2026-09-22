@@ -1,0 +1,66 @@
+data:
+  raw_root: ./data/raw
+  gt_root: ./data/gt
+  baseline_root: ./data/Baseline_net_output
+  ours_root: ./data/Ours_net_output
+
+sequences:
+  - UZH_Indoor45_9_davis
+  - UZH_Indoorforward_9_davis
+  - UZH_Outdoor45_1_davis
+  - UZH_Outdoorforward_3_davis
+
+evaluation:
+  seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+  gps_period_s: 1.0
+  sigma_p_m: 0.5
+  max_shift_sec: 0.2
+  add_gps_noise: false
+
+eskf:
+  sigma_g: 0.02
+  sigma_a: 0.2
+  sigma_bg: 0.002
+  sigma_ba: 0.02
+  p0_pos_m: 1.5
+  p0_vel_mps: 0.8
+  p0_att_deg: 8.0
+  p0_bg_radps: 0.05
+  p0_ba_mps2: 0.5
+  q_outage_alpha: 3.0
+  q_outage_tau_s: 5.0
+  q_outage_cap: 10.0
+  reacq_r_scale: 9.0
+  reacq_updates: 3
+  reacq_decay: 0.5
+  innov_gate_abs_m: 0.0
+  innov_gate_sigma: 6.0
+  nis_adapt_beta_up: 0.20
+  nis_adapt_beta_down: 0.05
+  nis_adapt_min_scale: 0.5
+  nis_adapt_max_scale: 25.0
+  nis_adapt_hi_ratio: 1.5
+  nis_reject_p: 0.999
+
+outage_protocol:
+  long:
+    min_span_s: 70.0
+    num_outages: 3
+    duration_min_s: 8.5
+    duration_max_s: 9.5
+    margin_s: 4.0
+  medium:
+    min_span_s: 25.0
+    num_outages: 1
+    duration_min_s: 8.5
+    duration_max_s: 9.5
+    margin_s: 3.0
+  short:
+    num_outages: 1
+    duration_min_s: 6.0
+    duration_max_s: 7.0
+    margin_s: 2.0
+
+aggregation:
+  poserr_rms: mean_over_seeds
+  first3_nis: mean_over_all_outage_events

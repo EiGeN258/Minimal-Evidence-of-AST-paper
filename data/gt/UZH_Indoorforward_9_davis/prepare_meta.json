@@ -1,0 +1,22 @@
+{
+  "seq": "UZH_Indoorforward_9_davis",
+  "status": "ok",
+  "input_paths": {
+    "dido_csv": "S:\\GNSS-deadreckon\\DIDO\\net_imu_merged\\UZH_Indoorforward_9_davis_imu_net.csv",
+    "gt_source": "S:\\GNSS-deadreckon\\origin_data\\UZH_Indoorforward_9_davis\\mav0\\state_groundtruth_estimate0\\gt.txt",
+    "raw_reference": "S:\\GNSS-deadreckon\\origin_data\\UZH_Indoorforward_9_davis\\mav0\\imu0\\data.csv"
+  },
+  "output_paths": {
+    "denoise_for_pseudo": "S:\\GNSS-deadreckon\\DIDO\\pesudo_need\\UZH_Indoorforward_9_davis\\dido_denoise_rel.csv",
+    "gt_for_pseudo": "S:\\GNSS-deadreckon\\DIDO\\pesudo_need\\UZH_Indoorforward_9_davis\\gt_pseudo.csv"
+  },
+  "denoise_rows": 28769,
+  "denoise_t0_abs_sec": 1540822844.5007987,
+  "denoise_span_sec": 28.797391891479492,
+  "denoise_monotonic_violations": 0,
+  "gt_source_mode": "gt_txt",
+  "gt_rows": 14400,
+  "gt_t0_ns": 1540822844494800128,
+  "gt_t1_ns": 1540822873292800000,
+  "gt_span_sec": 28.797999872000002
+}

@@ -1,0 +1,93 @@
+# LearnedBias configuration used for the paper-comparison reproduction.
+# Values are separated into:
+#   paper_reported: explicitly supported by the paper/reproduction notes
+#   reproduction: concrete settings used in our reimplementation
+#   implementation_choices: details not fully specified by the original paper
+
+method: LearnedBias
+
+repository_paths:
+  raw_root: ../data/raw
+  gt_root: ../data/gt
+  output_root: ../data/LearnedBias_net_output
+
+data_split:
+  train:
+    - UZH_Indoorforward_3_davis
+    - UZH_Indoorforward_7_davis
+    - UZH_Outdoorforward_1_davis
+    - UZH_Indoor45_2_davis
+  val:
+    - UZH_Indoorforward_5_davis
+    - UZH_Outdoorforward_5_davis
+    - UZH_Indoor45_4_davis
+  test:
+    - UZH_Indoorforward_9_davis
+    - UZH_Outdoorforward_3_davis
+    - UZH_Indoor45_9_davis
+    - UZH_Outdoor45_1_davis
+
+paper_reported:
+  task: learned_imu_bias_prediction
+  imu_rate_hz: 200
+  input_window_seconds: 1.0
+  input_window_samples: 200
+  input_channels: 6
+  predicted_quantity: six_axis_imu_bias
+  bias_assumption: constant_within_window
+  backbone: resnet
+  approximate_parameter_count: 300000
+  training_objective:
+    differentiable_imu_integration: true
+    state_space: SE2_3
+    robust_loss: Huber
+    orientation_weight: 1000.0
+    position_weight: 100.0
+    velocity_weight: 10.0
+  training:
+    optimizer: Adam
+    learning_rate: 0.001
+  inference:
+    sliding_window: true
+    output: corrected_six_axis_imu
+
+reproduction:
+  seed: 42
+  device: cuda
+  window: 200
+  stride: 200
+  batch_size: 32
+  epochs: 200
+  learning_rate: 0.001
+  weight_decay: 0.0
+  num_workers: 4
+  gravity: [0.0, 0.0, -9.81]
+  model:
+    channels: 96
+    kernel_size: 5
+    dilations: [1, 2, 4]
+    dropout: 0.0
+  loss:
+    orientation_weight: 1000.0
+    position_weight: 100.0
+    velocity_weight: 10.0
+    huber_delta: 1.0
+
+implementation_choices:
+  note: >
+    The original paper does not disclose the final ResNet layer-by-layer channel widths,
+    kernel sizes, or exact residual-block count. The entries below document the concrete
+    architecture used in our engineering reimplementation and should not be interpreted
+    as exact unpublished settings from the original authors.
+  backbone_dimension: one_dimensional
+  channels: 96
+  kernel_size: 5
+  dilations: [1, 2, 4]
+  dropout: 0.0
+
+dataset_availability:
+  redistributed_here: false
+  note: >
+    Raw UZH-FPV data are not redistributed in this repository.
+    Users should obtain the original data from the official dataset source and
+    place the required sequences under repository_paths.raw_root and repository_paths.gt_root.

@@ -1,0 +1,98 @@
+[
+  {
+    "seq": "UZH_Indoorforward_9_davis",
+    "used_mode": "direct_corrected",
+    "raw_csv": "S:\\GNSS-deadreckon\\origin_data\\UZH_Indoorforward_9_davis\\mav0\\imu0\\data.csv",
+    "output_abs_csv": "S:\\GNSS-deadreckon\\AirIMU_pseudo_need\\Ours_net_output\\UZH_Indoorforward_9_davis\\UZH_Indoorforward_9_davis_denoised_abs_ns.csv",
+    "output_rel_csv": "S:\\GNSS-deadreckon\\AirIMU_pseudo_need\\Ours_net_output\\UZH_Indoorforward_9_davis\\UZH_Indoorforward_9_davis_denoised_rel_s.csv",
+    "num_rows": 28768,
+    "t0_ns": 1540822817202034688,
+    "t1_ns": 1540822845999381504,
+    "span_s": 28.797346816,
+    "dt_median_ms": 1.0009599999999998,
+    "pickle_keys": [
+      "acc_cov",
+      "gyro_cov",
+      "correction_acc",
+      "correction_gyro",
+      "corr_postproc_dbg",
+      "corrected_acc",
+      "corrected_gyro",
+      "rot",
+      "dt"
+    ],
+    "status": "ok"
+  },
+  {
+    "seq": "UZH_Outdoorforward_3_davis",
+    "used_mode": "direct_corrected",
+    "raw_csv": "S:\\GNSS-deadreckon\\origin_data\\UZH_Outdoorforward_3_davis\\mav0\\imu0\\data.csv",
+    "output_abs_csv": "S:\\GNSS-deadreckon\\AirIMU_pseudo_need\\Ours_net_output\\UZH_Outdoorforward_3_davis\\UZH_Outdoorforward_3_davis_denoised_abs_ns.csv",
+    "output_rel_csv": "S:\\GNSS-deadreckon\\AirIMU_pseudo_need\\Ours_net_output\\UZH_Outdoorforward_3_davis\\UZH_Outdoorforward_3_davis_denoised_rel_s.csv",
+    "num_rows": 85648,
+    "t0_ns": 1540113673014513408,
+    "t1_ns": 1540113758716736768,
+    "span_s": 85.70222336,
+    "dt_median_ms": 1.000704,
+    "pickle_keys": [
+      "acc_cov",
+      "gyro_cov",
+      "correction_acc",
+      "correction_gyro",
+      "corr_postproc_dbg",
+      "corrected_acc",
+      "corrected_gyro",
+      "rot",
+      "dt"
+    ],
+    "status": "ok"
+  },
+  {
+    "seq": "UZH_Indoor45_9_davis",
+    "used_mode": "direct_corrected",
+    "raw_csv": "S:\\GNSS-deadreckon\\origin_data\\UZH_Indoor45_9_davis\\mav0\\imu0\\data.csv",
+    "output_abs_csv": "S:\\GNSS-deadreckon\\AirIMU_pseudo_need\\Ours_net_output\\UZH_Indoor45_9_davis\\UZH_Indoor45_9_davis_denoised_abs_ns.csv",
+    "output_rel_csv": "S:\\GNSS-deadreckon\\AirIMU_pseudo_need\\Ours_net_output\\UZH_Indoor45_9_davis\\UZH_Indoor45_9_davis_denoised_rel_s.csv",
+    "num_rows": 21369,
+    "t0_ns": 1545308243657328640,
+    "t1_ns": 1545308265054161664,
+    "span_s": 21.396833024000003,
+    "dt_median_ms": 1.0012159999999999,
+    "pickle_keys": [
+      "acc_cov",
+      "gyro_cov",
+      "correction_acc",
+      "correction_gyro",
+      "corr_postproc_dbg",
+      "corrected_acc",
+      "corrected_gyro",
+      "rot",
+      "dt"
+    ],
+    "status": "ok"
+  },
+  {
+    "seq": "UZH_Outdoor45_1_davis",
+    "used_mode": "direct_corrected",
+    "raw_csv": "S:\\GNSS-deadreckon\\origin_data\\UZH_Outdoor45_1_davis\\mav0\\imu0\\data.csv",
+    "output_abs_csv": "S:\\GNSS-deadreckon\\AirIMU_pseudo_need\\Ours_net_output\\UZH_Outdoor45_1_davis\\UZH_Outdoor45_1_davis_denoised_abs_ns.csv",
+    "output_rel_csv": "S:\\GNSS-deadreckon\\AirIMU_pseudo_need\\Ours_net_output\\UZH_Outdoor45_1_davis\\UZH_Outdoor45_1_davis_denoised_rel_s.csv",
+    "num_rows": 19939,
+    "t0_ns": 1553767979529837824,
+    "t1_ns": 1553767999900492032,
+    "span_s": 20.370654208,
+    "dt_median_ms": 1.0009599999999998,
+    "pickle_keys": [
+      "acc_cov",
+      "gyro_cov",
+      "correction_acc",
+      "correction_gyro",
+      "corr_postproc_dbg",
+      "corrected_acc",
+      "corrected_gyro",
+      "rot",
+      "dt"
+    ],
+    "status": "ok"
+  }
+]

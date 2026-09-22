@@ -1,0 +1,22 @@
+{
+  "seq": "UZH_Outdoorforward_3_davis",
+  "status": "ok",
+  "input_paths": {
+    "dido_csv": "S:\\GNSS-deadreckon\\DIDO\\net_imu_merged\\UZH_Outdoorforward_3_davis_imu_net.csv",
+    "gt_source": "S:\\GNSS-deadreckon\\origin_data\\UZH_Outdoorforward_3_davis\\mav0\\state_groundtruth_estimate0\\gt.txt",
+    "raw_reference": "S:\\GNSS-deadreckon\\origin_data\\UZH_Outdoorforward_3_davis\\mav0\\imu0\\data.csv"
+  },
+  "output_paths": {
+    "denoise_for_pseudo": "S:\\GNSS-deadreckon\\DIDO\\pesudo_need\\UZH_Outdoorforward_3_davis\\dido_denoise_rel.csv",
+    "gt_for_pseudo": "S:\\GNSS-deadreckon\\DIDO\\pesudo_need\\UZH_Outdoorforward_3_davis\\gt_pseudo.csv"
+  },
+  "denoise_rows": 85649,
+  "denoise_t0_abs_sec": 1540113703.2962508,
+  "denoise_span_sec": 85.69765996932983,
+  "denoise_monotonic_violations": 0,
+  "gt_source_mode": "gt_txt",
+  "gt_rows": 42850,
+  "gt_t0_ns": 1540113703290400000,
+  "gt_t1_ns": 1540113788988399872,
+  "gt_span_sec": 85.69799987200001
+}
